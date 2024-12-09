@@ -1,25 +1,31 @@
-import fs from 'fs';
-import path from 'path';
-import { Command } from 'commander';
-import inquirer from 'inquirer';
-import chalk from 'chalk';
-import { fileURLToPath } from 'url';
-
-// __dirname oluştur
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import fs from 'fs';  // Dosya okuma ve yazma işlemleri için 'fs' modülünü içe aktar
+import { Command } from 'commander';  // Komut satırı arayüzü için 'commander' modülünü içe aktar
+import inquirer from 'inquirer';  // Kullanıcıdan giriş almak için 'inquirer' modülünü içe aktar
+import chalk from 'chalk';  // Konsola renkli yazılar yazdırmak için 'chalk' modülünü içe aktar
 
 // JSON dosyasının yolu
-const DB_PATH = path.join(__dirname, 'data', 'database.json');
+const DB_PATH = './data/database.json';  // Dosya yolunu doğrudan yazıyoruz
 
-// JSON dosyasını okuma ve yazma işlevleri
+// JSON dosyasını okuma işlemi
 function readDatabase() {
-    return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
+    try {
+        const data = fs.readFileSync(DB_PATH, 'utf8');  // JSON dosyasını oku
+        return JSON.parse(data);  // JSON verisini bir nesneye dönüştür
+    } catch (error) {
+        console.error('Veritabanı okunamadı:', error);  // Hata durumunda uyarı mesajı
+        return {};  // Hata durumunda boş bir nesne döndür
+    }
 }
 
+// JSON dosyasına yazma işlemi
 function writeDatabase(data) {
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
+    try {
+        fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');  // JSON verisini dosyaya yaz
+    } catch (error) {
+        console.error('Veritabanı yazılamadı:', error);  // Hata durumunda uyarı mesajı
+    }
 }
+
 
 // Kullanıcı menüsü
 const program = new Command();
