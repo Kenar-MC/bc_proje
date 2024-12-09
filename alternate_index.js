@@ -32,23 +32,23 @@ program
 // Likidite Ekleme İşlevi
 async function addLiquidity() {
     const data = readDatabase();
-    const { tokenA, tokenB } = await inquirer.prompt([
+    
+    // Kullanıcıdan sadece bir token miktarı alıyoruz
+    const { tokenA } = await inquirer.prompt([
         {
             type: 'input',
             name: 'tokenA',
             message: 'Havuza eklemek istediğiniz Token A miktarı:',
             validate: (value) => !isNaN(value) && value > 0
-        },
-        {
-            type: 'input',
-            name: 'tokenB',
-            message: 'Havuza eklemek istediğiniz Token B miktarı:',
-            validate: (value) => !isNaN(value) && value > 0
         }
     ]);
 
-    data.pool.tokenA += parseFloat(tokenA);
-    data.pool.tokenB += parseFloat(tokenB);
+    // Token B miktarını Token A'ya eşit olarak hesaplıyoruz
+    const tokenAMin = parseFloat(tokenA);
+    const tokenBMin = tokenAMin; // Eşit oranla eklenmesi için Token B de aynı miktarda olacak
+
+    data.pool.tokenA += tokenAMin;
+    data.pool.tokenB += tokenBMin;
     data.pool.K = data.pool.tokenA * data.pool.tokenB; // K değerini güncelle
 
     writeDatabase(data);
