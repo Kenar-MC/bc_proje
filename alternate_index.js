@@ -34,31 +34,47 @@ async function addLiquidity() {
     const data = readDatabase();
     
     // Kullanıcıdan sadece bir token miktarı alıyoruz
-    const { tokenA } = await inquirer.prompt([
+    const { tokenA, proceed } = await inquirer.prompt([
         {
             type: 'input',
             name: 'tokenA',
             message: 'Havuza eklemek istediğiniz Token A miktarı:',
             validate: (value) => !isNaN(value) && value > 0
+        },
+        {
+            type: 'confirm',
+            name: 'proceed',
+            message: 'İşleme devam etmek istiyor musunuz?',
+            default: true
         }
     ]);
 
-    // Token B miktarını Token A'ya eşit olarak hesaplıyoruz
+    // Eğer vazgeçildiyse işlem durdurulacak ve ana menüye dönülecek
+    if (!proceed) {
+        console.log(chalk.yellow('İşlem iptal edildi.'));
+        return; // Ana menüye dönmek için işlemi burada sonlandırıyoruz
+    }
+
     const tokenAMin = parseFloat(tokenA);
     const tokenBMin = tokenAMin; // Eşit oranla eklenmesi için Token B de aynı miktarda olacak
 
+    // Havuzdaki token miktarını güncelle
     data.pool.tokenA += tokenAMin;
     data.pool.tokenB += tokenBMin;
     data.pool.K = data.pool.tokenA * data.pool.tokenB; // K değerini güncelle
 
     writeDatabase(data);
     console.log(chalk.green('Likidite başarıyla eklendi!'));
+
+    // İşlem sonrası havuz durumu ve kullanıcı bakiyesini göster
+    viewPoolStatus();
+    viewUserBalance();
 }
 
 // Swap İşlevi
 async function swapTokens() {
     const data = readDatabase();
-    const { swapDirection, amount } = await inquirer.prompt([
+    const { swapDirection, amount, proceed } = await inquirer.prompt([
         {
             type: 'list',
             name: 'swapDirection',
@@ -70,8 +86,20 @@ async function swapTokens() {
             name: 'amount',
             message: 'Swap yapmak istediğiniz miktar:',
             validate: (value) => !isNaN(value) && value > 0
+        },
+        {
+            type: 'confirm',
+            name: 'proceed',
+            message: 'İşleme devam etmek istiyor musunuz?',
+            default: true
         }
     ]);
+
+    // Eğer vazgeçildiyse işlem durdurulacak ve ana menüye dönülecek
+    if (!proceed) {
+        console.log(chalk.yellow('İşlem iptal edildi.'));
+        return; // Ana menüye dönmek için işlemi burada sonlandırıyoruz
+    }
 
     const swapAmount = parseFloat(amount);
 
@@ -102,6 +130,10 @@ async function swapTokens() {
 
     writeDatabase(data);
     console.log(chalk.green('Swap işlemi başarıyla gerçekleştirildi!'));
+
+    // İşlem sonrası havuz durumu ve kullanıcı bakiyesini göster
+    viewPoolStatus();
+    viewUserBalance();
 }
 
 // Havuz Durumu Görüntüleme
