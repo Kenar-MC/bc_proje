@@ -1,154 +1,141 @@
-// Gerekli modülleri içe aktar
-import fs from 'fs';  // Dosya okuma ve yazma işlemleri için 'fs' modülünü içe aktar
-import path from 'path';  // Dosya ve dizin yolları üzerinde işlem yapabilmek için 'path' modülünü içe aktar
-import { Command } from 'commander';  // Komut satırı arayüzü için 'commander' modülünü içe aktar
-import inquirer from 'inquirer';  // Kullanıcıdan giriş almak için 'inquirer' modülünü içe aktar
-import chalk from 'chalk';  // Konsola renkli yazılar yazdırmak için 'chalk' modülünü içe aktar
-import { fileURLToPath } from 'url';  // Dosya URL'si için 'url' modülünden 'fileURLToPath' fonksiyonunu içe aktar
+import fs from 'fs';
+import path from 'path';
+import { Command } from 'commander';
+import inquirer from 'inquirer';
+import chalk from 'chalk';
+import { fileURLToPath } from 'url';
 
-// __dirname oluştur: modülün bulunduğu dizini almak için
-const __filename = fileURLToPath(import.meta.url);  // 'import.meta.url' ile mevcut dosyanın URL'sini al ve onu dosya yoluna dönüştür
-const __dirname = path.dirname(__filename);  // Dosyanın bulunduğu dizini al
+// __dirname oluştur
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // JSON dosyasının yolu
-const DB_PATH = path.join(__dirname, 'data', 'database.json');  // 'database.json' dosyasının tam yolunu oluştur
+const DB_PATH = path.join(__dirname, 'data', 'database.json');
 
 // JSON dosyasını okuma ve yazma işlevleri
-// JSON dosyasını okumak için fonksiyon
 function readDatabase() {
-    return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));  // JSON dosyasını okur ve içeriğini JSON formatında döndürür
+    return JSON.parse(fs.readFileSync(DB_PATH, 'utf8'));
 }
 
-// JSON dosyasına yazma işlemi için fonksiyon
 function writeDatabase(data) {
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');  // JSON verisini belirtilen dosyaya yazar
+    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
 }
 
-// Kullanıcı menüsü oluşturuluyor
-const program = new Command();  // Yeni bir 'Commander' programı başlat
+// Kullanıcı menüsü
+const program = new Command();
 
 program
-    .name("Uniswap V2 DEX Sim")  // Programın adı
-    .description("Uniswap V2 tabanlı DEX simülasyonu")  // Program açıklaması
-    .version("1.0.0");  // Programın versiyon numarası
+    .name("Uniswap V2 DEX Sim")
+    .description("Uniswap V2 tabanlı DEX simülasyonu")
+    .version("1.0.0");
 
-// Likidite ekleme işlemi için fonksiyon
+// Likidite Ekleme İşlevi
 async function addLiquidity() {
-    const data = readDatabase();  // JSON dosyasını oku
-
-    // Kullanıcıdan likidite miktarlarını al
+    const data = readDatabase();
     const { tokenA, tokenB } = await inquirer.prompt([
         {
             type: 'input',
-            name: 'tokenA',  // Kullanıcıdan Token A miktarını al
-            message: 'Havuza eklemek istediğiniz Token A miktarı:',  // Mesaj
-            validate: (value) => !isNaN(value) && value > 0  // Geçerli bir sayı olup olmadığını kontrol et
+            name: 'tokenA',
+            message: 'Havuza eklemek istediğiniz Token A miktarı:',
+            validate: (value) => !isNaN(value) && value > 0
         },
         {
             type: 'input',
-            name: 'tokenB',  // Kullanıcıdan Token B miktarını al
-            message: 'Havuza eklemek istediğiniz Token B miktarı:',  // Mesaj
-            validate: (value) => !isNaN(value) && value > 0  // Geçerli bir sayı olup olmadığını kontrol et
+            name: 'tokenB',
+            message: 'Havuza eklemek istediğiniz Token B miktarı:',
+            validate: (value) => !isNaN(value) && value > 0
         }
     ]);
 
-    // Havuzdaki token miktarlarını güncelle
-    data.pool.tokenA += parseFloat(tokenA);  // Token A miktarını havuza ekle
-    data.pool.tokenB += parseFloat(tokenB);  // Token B miktarını havuza ekle
-    data.pool.K = data.pool.tokenA * data.pool.tokenB;  // 'K' sabitini güncelle (Uniswap mantığı)
+    data.pool.tokenA += parseFloat(tokenA);
+    data.pool.tokenB += parseFloat(tokenB);
+    data.pool.K = data.pool.tokenA * data.pool.tokenB; // K değerini güncelle
 
-    writeDatabase(data);  // Veritabanını güncelle
-    console.log(chalk.green('Likidite başarıyla eklendi!'));  // Başarılı bir mesaj yazdır
+    writeDatabase(data);
+    console.log(chalk.green('Likidite başarıyla eklendi!'));
 }
 
-// Swap işlemi için fonksiyon
+// Swap İşlevi
 async function swapTokens() {
-    const data = readDatabase();  // JSON dosyasını oku
-    // Kullanıcıdan swap işlemi için yön ve miktar al
+    const data = readDatabase();
     const { swapDirection, amount } = await inquirer.prompt([
         {
-            type: 'list',  // Seçim yapılacak bir liste sun
-            name: 'swapDirection',  // Seçilen yön
-            message: 'Hangi işlemi yapmak istiyorsunuz?',  // Mesaj
-            choices: ['Token A -> Token B', 'Token B -> Token A']  // İki seçenek sun
+            type: 'list',
+            name: 'swapDirection',
+            message: 'Hangi işlemi yapmak istiyorsunuz?',
+            choices: ['Token A -> Token B', 'Token B -> Token A']
         },
         {
             type: 'input',
-            name: 'amount',  // Kullanıcının gireceği miktar
-            message: 'Swap yapmak istediğiniz miktar:',  // Mesaj
-            validate: (value) => !isNaN(value) && value > 0  // Geçerli bir sayı olup olmadığını kontrol et
+            name: 'amount',
+            message: 'Swap yapmak istediğiniz miktar:',
+            validate: (value) => !isNaN(value) && value > 0
         }
     ]);
 
-    const swapAmount = parseFloat(amount);  // Kullanıcı tarafından girilen miktarı sayı olarak al
+    const swapAmount = parseFloat(amount);
 
-    if (swapDirection === 'Token A -> Token B') {  // Token A’dan Token B’ye işlem yapılıyorsa
-        if (swapAmount > data.userBalance.tokenA) {  // Eğer yeterli Token A bakiyesi yoksa
-            console.log(chalk.red('Yetersiz Token A bakiyesi!'));  // Hata mesajı
-            return;  // Fonksiyonu durdur
+    if (swapDirection === 'Token A -> Token B') {
+        if (swapAmount > data.userBalance.tokenA) {
+            console.log(chalk.red('Yetersiz Token A bakiyesi!'));
+            return;
         }
 
-        // Token B alınacak miktarı hesapla
         const tokenBReceived = data.pool.tokenB - (data.pool.K / (data.pool.tokenA + swapAmount));
-        // Kullanıcı bakiyelerini güncelle
         data.userBalance.tokenA -= swapAmount;
         data.userBalance.tokenB += tokenBReceived;
-        // Havuz bakiyelerini güncelle
         data.pool.tokenA += swapAmount;
         data.pool.tokenB -= tokenBReceived;
 
-    } else {  // Token B’den Token A’ya işlem yapılıyorsa
-        if (swapAmount > data.userBalance.tokenB) {  // Eğer yeterli Token B bakiyesi yoksa
-            console.log(chalk.red('Yetersiz Token B bakiyesi!'));  // Hata mesajı
-            return;  // Fonksiyonu durdur
+    } else {
+        if (swapAmount > data.userBalance.tokenB) {
+            console.log(chalk.red('Yetersiz Token B bakiyesi!'));
+            return;
         }
 
-        // Token A alınacak miktarı hesapla
         const tokenAReceived = data.pool.tokenA - (data.pool.K / (data.pool.tokenB + swapAmount));
-        // Kullanıcı bakiyelerini güncelle
         data.userBalance.tokenB -= swapAmount;
         data.userBalance.tokenA += tokenAReceived;
-        // Havuz bakiyelerini güncelle
         data.pool.tokenB += swapAmount;
         data.pool.tokenA -= tokenAReceived;
     }
 
-    writeDatabase(data);  // Veritabanını güncelle
-    console.log(chalk.green('Swap işlemi başarıyla gerçekleştirildi!'));  // Başarılı bir mesaj yazdır
+    writeDatabase(data);
+    console.log(chalk.green('Swap işlemi başarıyla gerçekleştirildi!'));
 }
 
-// Havuz durumunu görüntüleme işlemi için fonksiyon
+// Havuz Durumu Görüntüleme
 function viewPoolStatus() {
-    const data = readDatabase();  // JSON dosyasını oku
-    console.log(chalk.blue('Likidite Havuzu Durumu:'));  // Mesaj
-    console.table(data.pool);  // Havuz verilerini tablolama formatında yazdır
+    const data = readDatabase();
+    console.log(chalk.blue('Likidite Havuzu Durumu:'));
+    console.table(data.pool);
 }
 
-// Kullanıcı bakiyesini görüntüleme işlemi için fonksiyon
+// Kullanıcı Bakiyesi Görüntüleme
 function viewUserBalance() {
-    const data = readDatabase();  // JSON dosyasını oku
-    console.log(chalk.blue('Kullanıcı Bakiyesi:'));  // Mesaj
-    console.table(data.userBalance);  // Kullanıcı bakiyelerini tablolama formatında yazdır
+    const data = readDatabase();
+    console.log(chalk.blue('Kullanıcı Bakiyesi:'));
+    console.table(data.userBalance);
 }
 
-// Çıkış işlemi için fonksiyon
+// Çıkış
 function exitProgram() {
-    console.log(chalk.yellow('Çıkış yapılıyor...'));  // Çıkış mesajını yazdır
-    process.exit(0);  // Programı sonlandır
+    console.log(chalk.yellow('Çıkış yapılıyor...'));
+    process.exit(0);
 }
 
 // Komutları tanımla
 program
-    .command('menu')  // 'menu' komutunu tanımla
-    .description('DEX kullanıcı menüsünü açar')  // Komut açıklaması
-    .action(async () => {  // Komut çalıştırıldığında yapılacak işlemler
-        while (true) {  // Sonsuz bir döngü başlat
-            const { choice } = await inquirer.prompt([  // Kullanıcıya seçim yaptır
+    .command('menu')
+    .description('DEX kullanıcı menüsünü açar')
+    .action(async () => {
+        while (true) {
+            const { choice } = await inquirer.prompt([
                 {
-                    type: 'list',  // Liste ile seçim yapılacak
-                    name: 'choice',  // Seçim ismi
-                    message: 'Bir işlem seçin:',  // Mesaj
-                    choices: [  // Seçilebilecek seçenekler
+                    type: 'list',
+                    name: 'choice',
+                    message: 'Bir işlem seçin:',
+                    choices: [
                         'Likidite Ekle',
                         'Swap',
                         'Havuz Durumunu Görüntüle',
@@ -158,24 +145,24 @@ program
                 }
             ]);
 
-            switch (choice) {  // Kullanıcının seçimine göre işlem yap
-                case 'Likidite Ekle':  // Eğer 'Likidite Ekle' seçilmişse
-                    await addLiquidity();  // Likidite ekleme işlemi yap
+            switch (choice) {
+                case 'Likidite Ekle':
+                    await addLiquidity();
                     break;
-                case 'Swap':  // Eğer 'Swap' seçilmişse
-                    await swapTokens();  // Swap işlemi yap
+                case 'Swap':
+                    await swapTokens();
                     break;
-                case 'Havuz Durumunu Görüntüle':  // Eğer 'Havuz Durumunu Görüntüle' seçilmişse
-                    viewPoolStatus();  // Havuz durumunu göster
+                case 'Havuz Durumunu Görüntüle':
+                    viewPoolStatus();
                     break;
-                case 'Kullanıcı Bakiyesini Görüntüle':  // Eğer 'Kullanıcı Bakiyesini Görüntüle' seçilmişse
-                    viewUserBalance();  // Kullanıcı bakiyesini göster
+                case 'Kullanıcı Bakiyesini Görüntüle':
+                    viewUserBalance();
                     break;
-                case 'Çıkış':  // Eğer 'Çıkış' seçilmişse
-                    exitProgram();  // Programı sonlandır
+                case 'Çıkış':
+                    exitProgram();
                     break;
             }
         }
     });
 
-program.parse(process.argv);  // Komut
+program.parse(process.argv);
