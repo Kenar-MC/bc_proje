@@ -1,1 +1,11 @@
-data/database_start.json data/database.json
+{
+    "pool": {
+      "tokenA": 1000,
+      "tokenB": 1000,
+      "K": 1000000
+    },
+    "userBalance": {
+      "tokenA": 500,
+      "tokenB": 500
+    }
+  }
