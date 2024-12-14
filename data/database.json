@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
   "pool": {
     "tokenA": 1000,
@@ -9,3 +10,6 @@
     "tokenB": 500
   }
 }
+=======
+data/database_start.json data/database.json
+>>>>>>> 6175c64cd2bd3584042b50b7568611664e738044
