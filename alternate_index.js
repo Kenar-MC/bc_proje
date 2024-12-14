@@ -1,7 +1,7 @@
-import fs from 'fs';  // Dosya okuma ve yazma işlemleri için 'fs' modülünü içe aktar
-import { Command } from 'commander';  // Komut satırı arayüzü için 'commander' modülünü içe aktar
-import inquirer from 'inquirer';  // Kullanıcıdan giriş almak için 'inquirer' modülünü içe aktar
-import chalk from 'chalk';  // Konsola renkli yazılar yazdırmak için 'chalk' modülünü içe aktar
+import fs from 'fs'; 
+import { Command } from 'commander'; 
+import inquirer from 'inquirer';  
+import chalk from 'chalk'; 
 
 // JSON dosyasının yolu
 const DB_PATH = './data/database.json';  // Dosya yolunu doğrudan yazıyoruz
@@ -141,6 +141,7 @@ async function swapTokens() {
     viewPoolStatus();
     viewUserBalance();
 }
+// Açık tekel mavisi
 
 // Havuz Durumu Görüntüleme
 function viewPoolStatus() {
