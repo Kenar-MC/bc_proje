@@ -126,7 +126,7 @@ async function swapTokens() {
             console.log(chalk.red('Yetersiz Token B bakiyesi!'));
             return;
         }
-
+// sign
         const tokenAReceived = data.pool.tokenA - (data.pool.K / (data.pool.tokenB + swapAmount));
         data.userBalance.tokenB -= swapAmount;
         data.userBalance.tokenA += tokenAReceived;
